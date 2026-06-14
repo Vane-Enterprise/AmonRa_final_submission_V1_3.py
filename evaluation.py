@@ -1,4 +1,4 @@
- /// script
+# /// script
 # dependencies = [
 #   "numpy",
 #   "pandas",
@@ -9,10 +9,9 @@
 import numpy as np
 import pandas as pd
 from predictor import Predictor
-
 class AmonRaPredictor(Predictor):
     """
-    amonRa_final_submission_V1_1.py
+    amonRa_submission_V1_1.py
     
     Fixed AlphaNova Cross-Sectional Predictor.
     - Fixes KeyError: Addresses multi-index levels by position (1), not by name.
@@ -92,11 +91,10 @@ class AmonRaPredictor(Predictor):
         preds_df = preds_df.reindex(columns=required_tickers, fill_value=0.0)
         
         # Final safety de-mean
-        preds_df = preds_df.sub(preds_df.mean(axis=1), axis=0)
-        
-        return preds_df
+        preds_df = preds_df.sub(preds_df.mean(axis=1), axis= 
+        return preds_df 
+     
 Example usage in my submission runner (fast, single-line call):
-
 ```python
 from utils.novelty import load_existing_cities, check_novelty
 # after you compute your city unit vector `my_city_unit` (shape (3,))
@@ -106,61 +104,28 @@ if not res["pass"]:
     # log and consider iterating (but do not use city coords as features)
     pass
 ```
-
-
 Practical runtime & memory tips (to pass the runner)
 • Computed my signal vector across the validation period (per timestamp \(i\) average vector on sphere or other canonical mapping provided by competition docs). If the competition expects a single city coordinate for the whole signal, follow their exact transformation (example below is the usual map from normalized signal vector to unit 3D).
-
 Example if your city must be a unit 3-vector extracted from signal statistics (replace with exact mapping the competition specifies):
 ```python
 # Suppose you have a summary vector s of length 3 (or compute via mapping provided)
 my_city_unit = np.array([sx, sy, sz], dtype=np.float32)
 my_city_unit /= max(np.linalg.norm(my_city_unit), 1e-12)
 ```
-
 Novelty check cost: reading parquet + one dot-product pass. Keep file small (it should be), and use float32.
-
 Do not compute angles for all cities (only for nearest) to reduce compute (we used dot -> argmax -> one arccos).
-
 Avoid heavy feature expansions at submission time. Precompute features offline where possible.
-
-Use LightGBM with early stopping and small number of leaves/trees for fast train (or XGBoost with controlled iterations). Example low-cost defaults:
-
-LightGBM params: num_boost_round=200, early_stopping_rounds=20, num_leaves=31, max_depth=6.
-
+Use LightGBM with early stopping and small number of leaves/trees for fast train (or XGBoost with controlled iterations). 
+Example low-cost defaults: LightGBM params: num_boost_round=200, early_stopping_rounds=20, num_leaves=31, max_depth=6.
 Use sample of training timestamps if full walk-forward is too slow.
-
-
-
 Ensure deterministic run time: fix random seeds and stop training if near runtime limit.
-
-
-Final compliance reminder
-
-
-The novelty script is allowed offline only; do not leak city coordinates into model training. If the runner finds city variables used as features (some competitions do static analysis), you risk disqualification.
-
+The novelty script is allowed offline only; do not leak city coordinates into model training. If the runner finds city variables used as features (some competitions do static analysis), you risk disqualification. 
 Log occurrences of non-novel submissions and iterate offline — do not attempt micro-perturbations of city location to game the system.
-
-
-If you want I can:
-
-(A) Produce a one-file `your_submission.py` example that implements a small LightGBM baseline (fast params) plus the `--gauge-fix` path that uses the novelty check and prints a human-readable report.
-
-(B) Produce a micro-benchmark to estimate the novelty-check runtime on your environment (reads parquet and runs dot product on N cities).
-
 Here’s a compact Python snippet that implements the prize formula, rounds to the nearest dollar, and returns an integer dollar amount. It handles the \(Q=0\) special case exactly.
-
  — I’ll first rewrite the prize formula clearly in LaTeX, then give a short interpretation, a few numeric examples, and a tiny Python function you can drop in to compute the prize.
-
 Cleaned formula
-
-
 Let \(U\) be the number of new users who register after launch (you gave this as UU).
-
 Let \(Q\) be the number of quality signals submitted (you gave this as QQ).
-
-
 The prize is
 \[
 \text{Prize}(U,Q)=
@@ -169,52 +134,32 @@ The prize is
 2000 + 48000\cdot (U\cdot Q)^{0.75}, & Q > 0.
 \end{cases}
 \]
-
-
 Interpretation
-
-
 If there are no quality signals submitted (\(Q=0\)), the prize pot is zero.
-
 If at least one quality signal is submitted, the prize is a base amount of $2{,}000 plus a scaling term proportional to \((U\cdot Q)^{0.75}\) times $48{,}000.
-
 The exponent \(0.75\) gives diminishing returns as the product \(U\cdot Q\) grows (sublinear scaling).
-
-
-Examples
-
-
+Examples:
 Example A: \(U=100\), \(Q=10\)
 \[
   U\cdot Q = 1000,\quad (U\cdot Q)^{0.75}=1000^{0.75}\approx 177.83,
   \]
-
 \[
   \text{Prize}\approx 2000 + 48000\cdot 177.83 \approx 2000 + 8{,}535{,}840 \approx \$8{,}537{,}840.
   \]
-
 Example B: \(U=10\), \(Q=1\)
 \[
   U\cdot Q = 10,\quad 10^{0.75}\approx 5.6234,
   \]
-
 \[
   \text{Prize}\approx 2000 + 48000\cdot 5.6234 \approx 2000 + 269{,}923 \approx \$271{,}923.
-  \]
-
+]
 Example C: \(U=0\), \(Q=5\)
 \[
   U\cdot Q=0 \Rightarrow (U\cdot Q)^{0.75}=0,\quad \text{Prize}=2000 + 48000\cdot 0 = \$2000.
   \]
-
 (Note: this is allowed because \(Q>0\). If instead \(Q=0\), prize = 0 by the rule.)
-
-
-Small Python helper
-
-
-This is safe to run in your environment. It handles integer or float inputs and the \(Q=0\) edge case.
-
+Small Python helper: This is safe to run in your environment. 
+It handles integer or float inputs and the \(Q=0\) edge case.
 
 ```python
 import math
@@ -239,18 +184,10 @@ print(compute_prize(10, 1))     # ~271,923
 print(compute_prize(0, 5))      # 2,000
 print(compute_prize(0, 0))      # 0
 ```
-
 Edge cases and notes
-
-
 If \(U\) or \(Q\) are large, the value grows fast despite the sublinear exponent; ensure numeric types can hold the result (Python float is typically fine, but consider using decimal or integer arithmetic if exact cents matter).
-
 If your platform reports fractional \(U\) or \(Q\) (unlikely), the formula still works with real values, but conceptually \(U,Q\) are integer counts.
-
 The special-case rule \(Q=0 \Rightarrow\) prize 0 overrides the base $2{,}000; keep that business rule exactly as stated
-
-
-
 
 ```python
 import math
@@ -273,18 +210,12 @@ print(compute_prize_rounded(10, 1))     # ~271923 -> rounded integer
 print(compute_prize_rounded(0, 5))      # 2000
 print(compute_prize_rounded(0, 0))      # 0
 ```
-
 # Notes:
 The code uses Python float arithmetic; for extremely large \(U\) and \(Q\) you can switch to Decimal if you need exact cents control.
-
-The result is rounded with Python’s round-to-nearest-even behavior; if you prefer always round .5 up, replace `round(prize)` with `math.floor(prize + 0.5)`.
-
-
-
-
-
-I need to include a code snippet that uses `math.floor(prize + 0.5)` and also handle negatives, ensuring U and Q are non-negative. It's important to return an integer, and I should show examples. All mathematical expressions must be in LaTeX, so I'll include the formula that way in the text. I'll keep the code block plain as suggested, while also mentioning the rounding method. Finally, I’ll briefly touch on an alternative using Decimal, but stay focused on the user's specific request.
-Use a half-up rounding rule by replacing Python’s round with a floor-based offset: return int(math.floor(x + 0.5)). The prize formula is
+The result is rounded with Python’s round-to-nearest-even behavior; if client prefers always round .5 up, replace `round(prize)` with `math.floor(prize + 0.5)`.
+It's important to return an integer, and I should show examples. All mathematical expressions must be in LaTeX, so I'll include the formula that way in the text. I'll keep the code block plain as suggested, while also mentioning the rounding method. Finally, I’ll briefly touch on an alternative using Decimal, but stay focused on the user's specific request.
+Use a half-up rounding rule by replacing Python’s round with a floor-based offset: return int(math.floor(x + 0.5)). 
+The prize formula is
 \[
 \text{Prize}(U,Q)=
 \begin{cases}
@@ -292,10 +223,7 @@ Use a half-up rounding rule by replacing Python’s round with a floor-based off
 2000 + 48000\cdot (U\cdot Q)^{0.75} & Q>0.
 \end{cases}
 \]
-
-
 Code (always rounds .5 up):
-
 ```python
 import math
 
@@ -312,14 +240,13 @@ def compute_prize_round_half_up(U, Q):
     return int(math.floor(prize + 0.5))
 
 # Examples
-print(compute_prize_round_half_up(100, 10))   # example
+print(compute_prize_round_half_up(100, 10))   
+# example
 print(compute_prize_round_half_up(10, 1))
 print(compute_prize_round_half_up(0, 5))
 print(compute_prize_round_half_up(0, 0))
 ``
-
 Code (Decimal half-up, returns integer dollars):
-
 ```python
 from decimal import Decimal, getcontext, ROUND_HALF_UP
 
@@ -328,18 +255,14 @@ def compute_prize_decimal_half_up(U, Q, prec=50):
     Compute Prize(U,Q) using Decimal arithmetic and round half-up to whole dollars.
     Prize(U,Q) = 0                     if Q == 0
                 = 2000 + 48000*(U*Q)**0.75   if Q > 0
-
     Uses (U*Q)**0.75 = ((U*Q)**3)**(1/4) and computes fourth root via two sqrt calls.
     """
     # Set precision high enough for large inputs
     getcontext().prec = prec
-
     U_d = Decimal(int(U))
     Q_d = Decimal(int(Q))
-
     if Q_d == 0:
         return 0
-
     product = U_d * Q_d  # Decimal
     # If product == 0 (e.g., U==0 but Q>0), (product)**0.75 == 0 and prize = 2000
     if product == 0:
@@ -350,42 +273,28 @@ def compute_prize_decimal_half_up(U, Q, prec=50):
         # Fourth root = sqrt(sqrt(prod_cubed))
         fourth_root = prod_cubed.sqrt().sqrt()
         prize = Decimal('2000') + Decimal('48000') * fourth_root
-
     # Quantize to 0 decimal places with ROUND_HALF_UP and return int
     prize_q = prize.quantize(Decimal('1'), rounding=ROUND_HALF_UP)
-    return int(prize_q)
-
+    return int(prize_q) 
 
 # Examples
-print(compute_prize_decimal_half_up(100, 10))  # large result
+print(compute_prize_decimal_half_up(100, 10))  
+# large result
 print(compute_prize_decimal_half_up(10, 1))
 print(compute_prize_decimal_half_up(0, 5))
 print(compute_prize_decimal_half_up(0, 0))
 ```
-# Notes:
-
-I set Decimal precision to 50 digits by default via `prec=50`; increase if you expect astronomically large \(U\cdot Q\).
-
+# Notes: I set Decimal precision to 50 digits by default via `prec=50`; increase if you expect astronomically large \(U\cdot Q\).
 We cast inputs to int first to ensure integer counts; if you truly have non-integer inputs, adapt the casting and interpretation.
-
 This implementation avoids float conversions entirely and performs exact half-up rounding via `quantize(..., rounding=ROUND_HALF_UP)`.
+Here are the variables I recommend including, followed by the fully typeset formula in LaTeX and a brief description of each symbol.
 
-
-Great — here are the variables I recommend including, followed by the fully typeset formula in LaTeX and a brief description of each symbol.
-
-Recommended variables to include
-
-
+Recommended variables to include:
 \(U\): number of new users who register after launch (count, nonnegative integer).
-
 \(Q\): number of quality signals submitted (count, nonnegative integer).
-
 \(B\): base prize when \(Q>0\) (dollars). Default \(B=2000\).
-
 \(S\): scale multiplier for the growth term (dollars). Default \(S=48000\).
-
 \(\gamma\): exponent on the product \(U\cdot Q\). Default \(\gamma=0.75\).
-
 
 Typeset formula (LaTeX)
 \[
@@ -395,31 +304,18 @@ Typeset formula (LaTeX)
 B + S\cdot (U\cdot Q)^{\gamma}, & Q>0,
 \end{cases}
 \]
-
 with the usual default parameter values
 \[
 B=2000,\qquad S=48000,\qquad \gamma=\tfrac{3}{4}.
-\]
-
-
+\] 
 Variable definitions
-
-
 \(U\in\mathbb{Z}_{\ge 0}\): new user registrations after contest launch.
-
 \(Q\in\mathbb{Z}_{\ge 0}\): number of quality signals submitted.
-
 \(B\in\mathbb{R}_{\ge 0}\): guaranteed base prize applied when at least one quality signal is submitted.
-
 \(S\in\mathbb{R}_{\ge 0}\): scaling factor multiplying the sublinear growth term.
-
 \(\gamma\in(0,1]\): exponent controlling sublinearity/diminishing returns (here \(\gamma=0.75\)).
 
-
-
-
-
-prize_compute.py
+python runner.py prize_compute.py
 
 ```python
 #!/usr/bin/env python3
@@ -429,8 +325,7 @@ prize_compute.py
 Compute Prize(U,Q) with half-up rounding.
 
 Prize(U,Q) = 0                     if Q == 0
-            = 2000 + 48000*(U*Q)**0.75   if Q > 0
-
+            = 2000 + 48000*(U*Q)**0.75   if Q > 0           
 Provides:
 - compute_prize_round_half_up: float math, half-up via floor(x+0.5)
 - compute_prize_decimal_half_up: Decimal math, exact half-up quantize
@@ -474,14 +369,12 @@ def compute_prize_round_half_up(U: int | float, Q: int | float) -> int:
     result = int(math.floor(prize + 0.5))
     logger.debug("Float prize computed: raw=%s -> rounded=%d", prize, result)
     return result
-
+    
 ```python
 def compute_prize_decimal_half_up(U: int, Q: int, prec: int = 50) -> int:
     """
     Decimal-based computation with exact half-up rounding.
-
     Uses (U*Q)**0.75 = ((U*Q)**3)**(1/4) and computes 4th root via two sqrt calls.
-
     Parameters:
         U, Q: non-negative integers (counts). If Q == 0 returns 0.
         prec: Decimal precision (default 50).
@@ -490,11 +383,9 @@ def compute_prize_decimal_half_up(U: int, Q: int, prec: int = 50) -> int:
     """
     U_i = int(U)
     Q_i = int(Q)
-
     if Q_i == 0:
         logger.debug("Q is zero -> prize 0 (decimal path)")
         return 0
-
     getcontext().prec = max(prec, 28)
     U_d = Decimal(U_i)
     Q_d = Decimal(Q_i)
@@ -506,13 +397,11 @@ def compute_prize_decimal_half_up(U: int, Q: int, prec: int = 50) -> int:
         prod_cubed = product ** 3
         fourth_root = prod_cubed.sqrt().sqrt()
         prize = Decimal('2000') + Decimal('48000') * fourth_root
-
     prize_q = prize.quantize(Decimal('1'), rounding=ROUND_HALF_UP)
     result = int(prize_q)
     logger.debug("Decimal prize computed: raw=%s -> quantized=%s", prize, prize_q)
-    return result
-
-
+    return result.
+```
 def _print_examples():
     examples = [
         (100, 10),
@@ -529,7 +418,6 @@ def _print_examples():
     print("\nExamples (Decimal half-up):")
     for U, Q in examples:
         print(f"  U={U:>5}, Q={Q:>5} -> ${compute_prize_decimal_half_up(U, Q):,}")
-
 
 ```python
 def _cli_main(argv):
@@ -548,7 +436,7 @@ def _cli_main(argv):
     if args.verbose:
         logger.setLevel(logging.DEBUG)
         logger.debug("Verbose logging enabled")
-
+        
     if args.run_tests:
         logger.info("Running unit tests...")
         import unittest
@@ -573,8 +461,7 @@ def _cli_main(argv):
     else:
         print(f"Prize(U={args.U}, Q={args.Q}) = ${prize:,}")
     return 0
-
-
+    
 # ----------------------------
 # Unit tests
 # ----------------------------
@@ -637,8 +524,6 @@ if __name__ == "__main__":
         logger.error("Unhandled exception: %s", e)
         sys.exit(2)
 ```
-```
-
 # How to use
 • Run examples: 
 • python prize_compute.py --examples
@@ -649,17 +534,16 @@ if __name__ == "__main__":
 • Run tests:
 • python prize_compute.py --run-tests
 Verbose logging:
-• python prize_compute.py 100 10 --verbose
+• python prize_compute.py 100 10 --verbose 
  Notes on exceptional quality & repeatability
-
 • The Decimal implementation uses two sqrt calls (fourth root) to compute the fractional exponent exactly in Decimal arithmetic, avoiding float conversions and ensuring exact half-up rounding behavior.
 • Unit tests include tie-case checks for half-up behavior and a consistency sweep for small integers.
 JSON output facilitates programmatic ingestion by submission portals or CI.
 Logging provides diagnostic visibility; use --verbose during debugging
 • JSON output facilitates programmatic ingestion by submission portals or CI.
 • Logging provides diagnostic visibility; use --verbose during debugging.
-AmonRa_final_submission_V1_3.py
 
+AmonRa_final_submission_V1_3.py
 ```python
 #!/usr/bin/env python3
 """
@@ -669,7 +553,6 @@ Compute Prize(U,Q) with half-up rounding.
 
 Prize(U,Q) = 0                     if Q == 0
             = 2000 + 48000*(U*Q)**0.75   if Q > 0
-
 Provides:
 - compute_prize_round_half_up: float math, half-up via floor(x+0.5)
 - compute_prize_decimal_half_up: Decimal math, exact half-up quantize
@@ -695,7 +578,6 @@ _handler = logging.StreamHandler()
 _handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
 logger.addHandler(_handler)
 
-
 def compute_prize_round_half_up(U: int | float, Q: int | float) -> int:
     """
     Fast float-based computation. Rounds half-up via int(math.floor(x + 0.5)).
@@ -716,7 +598,7 @@ def compute_prize_round_half_up(U: int | float, Q: int | float) -> int:
 
 $ python runner.py AmonRa_final_submission_V1_3.py --gauge-fix 
 
-``````python
+```python
 # utils/novelty.py
 import numpy as np
 import pandas as pd
@@ -823,7 +705,6 @@ def compute_prize_decimal_half_up(U: int, Q: int, prec: int = 50) -> int:
     logger.debug("Decimal prize computed: raw=%s -> quantized=%s", prize, prize_q)
     return result
 
-
 def _print_examples():
     examples = [
         (100, 10),
@@ -840,7 +721,6 @@ def _print_examples():
     print("\nExamples (Decimal half-up):")
     for U, Q in examples:
         print(f"  U={U:>5}, Q={Q:>5} -> ${compute_prize_decimal_half_up(U, Q):,}")
-
 ``` 
 ```python
 def _cli_main(argv):
@@ -886,17 +766,14 @@ def _cli_main(argv):
         print(f"Prize(U={args.U}, Q={args.Q}) = ${prize:,}")
     return 0
 
-
 # ----------------------------
 # Unit tests
 # ----------------------------
 import unittest
 
-
 class TestPrizeCompute(unittest.TestCase):
     def test_zero_Q_float(self):
         self.assertEqual(compute_prize_round_half_up(100, 0), 0)
-
 ```
     def test_zero_Q_decimal(self):
         self.assertEqual(compute_prize_decimal_half_up(100, 0), 0)
@@ -937,7 +814,6 @@ class TestPrizeCompute(unittest.TestCase):
                 a = compute_prize_round_half_up(U, Q)
                 b = compute_prize_decimal_half_up(U, Q)
                 self.assertEqual(a, b)
-
 
 # ----------------------------
 # Entry point
