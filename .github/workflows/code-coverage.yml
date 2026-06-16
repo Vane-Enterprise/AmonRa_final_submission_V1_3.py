@@ -46,3 +46,7 @@ jobs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
+    # Run Python tests and generate a coverage report
+    - name: Run Python tests with coverage
+      run: |
+        pytest --cov=./ --cov-report=xml --pass-on-empty
