@@ -33,10 +33,10 @@ jobs:
         pip install pytest pytest-cov google-api-python-client google-auth-httplib2 google-auth-oauthlib
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    # Run Python tests and generate a coverage report
+    # Run Python tests and generate a coverage report safely
     - name: Run Python tests with coverage
       run: |
-        pytest --cov=./ --cov-report=xml
+        pytest --cov=./ --cov-report=xml || [ $? -eq 5 ]
 
     # Initializes the default CodeQL code quality query suites
     - name: Initialize CodeQL
@@ -46,7 +46,3 @@ jobs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
-    # Run Python tests and generate a coverage report
-    - name: Run Python tests with coverage
-      run: |
-        pytest --cov=./ --cov-report=xml --pass-on-empty
