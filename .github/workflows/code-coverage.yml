@@ -1,5 +1,4 @@
 name: "Code Quality and Coverage"
-
 on:
   push:
     branches: [ "main" ]
@@ -26,7 +25,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-        cache: 'pip'
+        # Deleted the cache: 'pip' line from here to prevent the crash!
 
     # Install your dependencies and testing packages
     - name: Install dependencies
