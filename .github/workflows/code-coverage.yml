@@ -42,7 +42,7 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
-        languages: 'javascript-typescript' # Handles your index.html / frontend scripts
+        languages: 'python' # Changed from javascript-typescript to python!
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
