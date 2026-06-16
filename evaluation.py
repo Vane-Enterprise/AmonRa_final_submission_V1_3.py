@@ -1,6 +1,6 @@
 Below are two ready-to-save files:
 
-1) AmonRa_final_submission_V1_4.py — updated submission module with:
+ 1) AmonRa_final_submission_V1_4.py — updated submission module with:
    - Float and Decimal half-up prize functions (unchanged behavior).
    - CLI with JSON, examples, --decimal, --verbose.
    - Unit tests (unittest).
